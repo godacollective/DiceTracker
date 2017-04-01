@@ -8,5 +8,8 @@ Download latest 10 images with tag #test_tag every 10 seconds until 40 seconds h
     python dicetracker.py -t "127 255" -osc "127.0.0.1 5005"
 ```
   - [-t THRESHOLD] : specify lower and upper thresholds, default is "127 255"
+<<<<<<< HEAD
   - [-s SEND] : if 0, OSC messaging is off, default is 1
+  - [-osc]: specify IP address of the OSC server and port, that the OSC server is listening to, default is "127.0.0.1 5005"
+=======
   - [-osc]: specify IP address of the OSC server and port, that the OSC server is listening to, default is "127.0.0.1 5005"
