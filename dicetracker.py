@@ -3,7 +3,9 @@ import argparse
 parser = argparse.ArgumentParser() 
 parser.add_argument("-t", "--threshold", help = "type threshold lower and upper arguments as '127 255'", 
 default = "127 255", type = str)
-parser.add_argument("-osc", "--osc", help = "type osc ip adress and channel as '127.0.0.1 5005'", 
+parser.add_argument("-s", "--send", help = "type 1 or 0 to turn OSC sending on/off, default is 1", 
+default = 1, type = int)
+parser.add_argument("-osc", "--osc", help = "type osc ip adress and port as '127.0.0.1 5005'", 
 default = "127.0.0.1 5005", type = str)
 args = parser.parse_args()
 
@@ -17,6 +19,10 @@ from pythonosc import udp_client
 cap = cv2.VideoCapture('test.mp4')
 
 kernel = np.ones((3,3), np.uint8)
+
+osc = args.osc.split()
+ip = osc[0]
+port = osc[1]
 
 while(1):
     ret, frame = cap.read()
@@ -52,12 +58,9 @@ while(1):
                     if p[3] == i:
                         total[idx] += 1
             print (total)
-
-            osc = args.osc.split()
-            ip = osc[0]
-            port = osc[1]
-            client = udp_client.SimpleUDPClient(ip, port)
-            client.send_message("/dice", total)
+            if args.send == 1:
+                client = udp_client.SimpleUDPClient(ip, port)
+                client.send_message("/dice", total)
         except:
             pass
         
