@@ -1,12 +1,16 @@
 import argparse
 
 parser = argparse.ArgumentParser() 
+parser.add_argument("-v", "--video", help = "type number of video source or name of video file in root directory", 
+default = "0", type = str)
 parser.add_argument("-t", "--threshold", help = "type threshold lower and upper arguments as '127 255'", 
 default = "127 255", type = str)
 parser.add_argument("-s", "--send", help = "type 1 or 0 to turn OSC sending on/off, default is 1", 
 default = 1, type = int)
 parser.add_argument("-osc", "--osc", help = "type osc ip adress and port as '127.0.0.1 5005'", 
 default = "127.0.0.1 5005", type = str)
+parser.add_argument("-m", "--monitoring", help = "type 1 or 0 to turn monitoring on/off, default is 0", 
+default = 0, type = int)
 args = parser.parse_args()
 
 import numpy as np
@@ -16,7 +20,13 @@ from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
 #display a video
-cap = cv2.VideoCapture('test.mp4')
+try:
+    cap = cv2.VideoCapture(int(args.video))
+except:
+    try:
+        cap = cv2.VideoCapture(args.video) 
+    except:
+        "Wrong video input"
 
 kernel = np.ones((3,3), np.uint8)
 
@@ -34,11 +44,11 @@ while(1):
         thresargs = args.threshold.split()
         ret,thres = cv2.threshold(gray,int(thresargs[0]),int(thresargs[1]),cv2.THRESH_BINARY)
         erosion = cv2.erode(thres, kernel, iterations=1)
-        
-        im,contours,hierarchy = cv2.findContours(erosion, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-        
-        cv2.drawContours(frame, contours, -1, (1,0,255), 2)
 
+        #find and draw all contours in blue
+        im,contours,hierarchy = cv2.findContours(erosion, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(frame, contours, -1, (255,0,0), 2)
+        #now find and draw only square contours in red
         try:
             parents = []
             for idx, i in enumerate(hierarchy[0]):
@@ -49,23 +59,26 @@ while(1):
                     ar = w / float(h)
                 if ar >= 0.95 and ar <= 1.05 and i[3] == -1: 
                     parents.append(idx)
-            #print (parents)
-                    
+                    cv2.drawContours(frame, contours, idx, (1,0,255), 2)
+            #count contours inside squares
             total = [0] * len(parents)
             
             for idx, i in enumerate(parents):
                 for p in hierarchy[0]:
                     if p[3] == i:
                         total[idx] += 1
-            print (total)
+                if args.monitoring == 1:
+                    print (total)    
             if args.send == 1:
                 client = udp_client.SimpleUDPClient(ip, port)
                 client.send_message("/dice", total)
+            
         except:
             pass
         
-        cv2.imshow('frame',frame)
-
+        cv2.imshow("frame",frame)
+        if args.monitoring == 1:
+            cv2.imshow("monitor", erosion)
     except:
         print ("END")
         break
