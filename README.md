@@ -3,7 +3,7 @@ OpenCV based tracker of cubical dice, that response any number of dice and send 
 
 ### Arguments:
 
-Download latest 10 images with tag #test_tag every 10 seconds until 40 seconds have passed and send an OSC message with the filename):
+Select first video source, set lower threshold to 127 and upper to 255, turn on OSC sending, use localhost and port 5005:
 ```
     python dicetracker.py -v "0" -t "127 255" -s 1 -osc "127.0.0.1 5005"
 ```
